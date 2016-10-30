@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using Microsoft.VisualBasic.FileIO;
 using OLXDataNinja.Models;
 
@@ -11,14 +13,18 @@ namespace OLXDataNinja
         {
             var trainingData = new List<TrainingDataModel>();
 
+            var timer = new Stopwatch();
+            timer.Start();
             try
             {
-                using (var reader = new TextFieldParser(Constants.TrainingData[0]))
+                using (var reader = new StreamReader(Constants.TrainingData[0]))
                 {
-                    reader.Delimiters = new[] {"\t"};
+                    //reader.Delimiters = new[] {"\t"};
                     for (var i = 0; i < 1000; i++)
                     {
-                        trainingData.Add(TrainingDataParser.Parse(reader?.ReadLine().Split('\t')));
+                        var readLine = reader.ReadLine();
+                        if ( readLine != null )
+                            trainingData.Add(TrainingDataParser.Parse(readLine.Split('\t')));
                     }
                 }
             }
@@ -26,7 +32,11 @@ namespace OLXDataNinja
             {
                 Console.WriteLine($"Error on line {ex.LineNumber}: {ex.Data}");
             }
-            Console.WriteLine($"{trainingData.Count} announcements loaded");
+            finally
+            {
+                timer.Stop();
+            }
+            Console.WriteLine($"{trainingData.Count} announcements loaded in {timer.ElapsedMilliseconds} ms");
             Console.ReadKey();
         }
     }
